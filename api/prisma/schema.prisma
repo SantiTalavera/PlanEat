@@ -1,0 +1,138 @@
+generator client {
+provider = "prisma-client-js"
+}
+
+datasource db {
+provider = "postgresql"
+url = env("DATABASE_URL")
+}
+
+model User {
+id String @id @default(uuid())
+email String @unique
+password String
+name String?
+createdAt DateTime @default(now())
+goals Goal[]
+products UserProduct[]
+consumptions Consumption[]
+mealPlans MealPlan[]
+customFoods CustomFood[]
+}
+
+model Product {
+id String @id @default(uuid())
+barcode String @unique
+name String
+brand String?
+unit String @default("g")
+kcal100 Float
+protein100 Float
+carbs100 Float
+fat100 Float
+source String @default("off") // off = Open Food Facts
+createdAt DateTime @default(now())
+userProducts UserProduct[]
+}
+
+model UserProduct {
+id String @id @default(uuid())
+user User @relation(fields: [userId], references: [id])
+userId String
+product Product @relation(fields: [productId], references: [id])
+productId String
+location Location
+gramsRemaining Int
+openedAt DateTime?
+expiresAt DateTime?
+note String?
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
+}
+
+enum Location {
+fridge
+freezer
+pantry
+}
+
+model CustomFood {
+id String @id @default(uuid())
+user User @relation(fields: [userId], references: [id])
+userId String
+name String
+kcal100 Float
+protein100 Float
+carbs100 Float
+fat100 Float
+createdAt DateTime @default(now())
+}
+
+model Goal {
+id String @id @default(uuid())
+user User @relation(fields: [userId], references: [id])
+userId String
+kcalTarget Int
+proteinPct Int
+carbsPct Int
+fatPct Int
+mealsPerDay Int @default(3)
+restrictions Json?
+createdAt DateTime @default(now())
+}
+
+model MealPlan {
+id String @id @default(uuid())
+user User @relation(fields: [userId], references: [id])
+userId String
+date DateTime
+totalKcal Int
+status PlanStatus @default(draft)
+items MealItem[]
+createdAt DateTime @default(now())
+}
+
+enum PlanStatus {
+draft
+published
+}
+
+model MealItem {
+id String @id @default(uuid())
+mealPlan MealPlan @relation(fields: [mealPlanId], references: [id])
+mealPlanId String
+slot MealSlot
+source MealSource
+sourceId String
+grams Int
+kcal Int
+protein Float
+carbs Float
+fat Float
+}
+
+enum MealSlot {
+breakfast
+lunch
+snack
+dinner
+}
+
+enum MealSource {
+product
+custom
+}
+
+model Consumption {
+id String @id @default(uuid())
+user User @relation(fields: [userId], references: [id])
+userId String
+dateTime DateTime @default(now())
+source MealSource
+sourceId String
+grams Int
+kcal Int
+protein Float
+carbs Float
+fat Float
+}
